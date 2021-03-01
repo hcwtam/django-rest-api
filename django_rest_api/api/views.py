@@ -16,10 +16,8 @@ class GetPostsView(generics.ListAPIView):
 
 class GetPostView(generics.UpdateAPIView):
     serializer_class = PostSerializer
-    lookup_url_kwarg = 'id'
 
-    def get(self, request):
-        id = request.GET.get(self.lookup_url_kwarg)
+    def get(self, request, id):
         if id != None:
             post = Post.objects.filter(id=id)
             if len(post) > 0:
@@ -49,15 +47,13 @@ class CreatePostView(APIView):
 
 class UpdatePostView(APIView):
     serializer_class = PostSerializer
-    lookup_url_kwarg = 'id'
 
-    def put(self, request):
+    def put(self, request, id):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             title = serializer.data.get('title')
             author = serializer.data.get('author')
             content = serializer.data.get('content')
-            id = request.GET.get(self.lookup_url_kwarg)
 
             queryset = Post.objects.filter(id=id)
             if not queryset.exists():
@@ -67,17 +63,14 @@ class UpdatePostView(APIView):
             post.title = title
             post.author = author
             post.content = content
-            post.save(update_fields=['title', 'author', 'content'])
+            post.save()
             return Response(PostSerializer(post).data, status=status.HTTP_200_OK)
 
         return Response({'message': 'Invalid input.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeletePostView(generics.DestroyAPIView):
-    lookup_url_kwarg = 'id'
-
-    def delete(self, request):
-        id = request.GET.get(self.lookup_url_kwarg)
+    def delete(self, request, id):
         post = Post.objects.get(id=id)
         if not post:
             return Response({'message': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
